@@ -1,0 +1,54 @@
+version=$(grep '^VERSION_ID' /etc/os-release)
+#echo $version
+
+if [[ $version = 'VERSION_ID="8"' ]] ;
+then
+  echo -e "Your OS version is CentOS v8"
+
+elif [[ $version = 'VERSION_ID="7"' ]] ;
+then
+  echo -e "Your OS version is  CentOS v7"
+fi
+
+
+yum list -q installed > lista
+
+condicionclamav=$(grep '^clamav' lista)
+echo $condicionclamav
+
+if [[ $condicionclamav = "" ]];
+then
+  echo -e "ClamAV AntiVirus is not installed in your system. The installation is going to begin"
+  yum -y install clamav
+  echo -e "ClamAV succesfully installed!${NC}"
+else
+  echo -e "ClamAV is already installed in the system. It will be erased and installed again with a newer version"
+  yum -y erase clamav*
+  echo -e "ClamAV succesfully erased. The new installation with a fresher version is going to begin"
+  yum -y install clamav
+  echo -e "ClamAV succesfully installed with a fresher version!"
+fi
+
+#Script should install EPEL repositories only for CentOS v7 servers
+
+if [[ $version = 'VERSION_ID="7"' ]];
+then
+  echo -e "As your OS version is CentOS 7, the installation of EPEL will now begin."
+  yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+echo -e "EPEL succesfully installed!"
+fi
+
+#Script should be capable to update all packages having an available update in the repositories
+
+updates=$(yum check-update)
+echo $updates
+
+if [[ $updates = "" ]];
+then
+  echo -e "There are no packages that need an update "
+else
+  echo -e "The packages that need an update are:"
+  echo -e "$updates"
+  yum -y update
+fi
+exit 0
